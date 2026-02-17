@@ -10,6 +10,7 @@ cam_list = webcamlist
 cam_name = cam_list{2}
 %% Check webcam properties
 cam = webcam(cam_name)
+cam.Saturation = 150;
 %% Preview cam
 preview(cam)
 %% Close Preview
