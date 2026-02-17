@@ -15,3 +15,46 @@ Images used for analysis:
 - Additional outputs from processing
 %}
 
+%% Initialize gameState struct
+clear; clc; close all;
+% Constants
+gameState.N = 24;
+
+% Camera Config
+gameState.camera.resolution = [640 480]; % [width height]
+gameState.camera.format = 'MJPG_640x480';
+gameState.camera.frameGrabinterval = 1;
+
+% FOV Setup // Needs to be measured in lab (need to figure out where camera
+% will be situated to have a consistent FOV
+% gameState.camera.FOV = [x y]; % [w x h] in inches
+% gameState.camera.pxPerIn = ...
+    % gameState.camera.resolution(1) / gamestate.camera.FOV(1);
+
+% gameState.camera.inPerPx = ...
+    % gameState.camera.FOV(1) / gameState.camera.resolution(1);
+
+% Color key
+gameState.colorkey = table(...
+    uint8([0, 1, 2, 3, 4])', ...
+    ["Unknown","Red","Blue","Purple","Green"]', ...
+    'VariableNames', {'id','name'});
+
+% Board Geometry
+% Angles for each space 
+gameState.spaceAngleDeg = (0:gameState.N-1) * (360/gameState.N); % 0,15,30,...345
+
+% Pixel locations
+% size: 24x2, columns = [x y], will be centroid
+gameState.spaceCenterPx = nan(gameState.N, 2);
+
+% board center?? Not sure if this will be useful
+gameState.boardCenterPx = [nan nan];
+gameState.boardRadiusPx = nan;
+
+% Detection results per space
+% Color of each space as detected
+gamestate.spaceColorID = zeros(gameState.N,1, 'uint8');
+
+
+
