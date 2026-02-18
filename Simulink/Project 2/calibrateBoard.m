@@ -1,5 +1,6 @@
-function calib = calibrateBoard(img)
-    f = figure('Name','Calibration','NumberTitle','off');
+function calib = calibrateBoard(img, showOverlay)
+if nargin < 2, showOverlay = false; end
+    figure('Name','Calibration','NumberTitle','off');
     imshow(img);
     title(["Click CENTER", ...
            "Then click ANY boundary line", ...
@@ -36,9 +37,6 @@ function calib = calibrateBoard(img)
         sophWedge = 3;
     end
 
-    % ---- Labeling rule you wanted ----
-    % "Going CW from Sophomore, it hits Senior first."
-    %
     % Since wedge indices increase CCW (1->2->3->1),
     % the CW neighbor is the PREVIOUS wedge index.
     cwNext = @(w) mod(w - 2, 3) + 1;   % 1->3->2->1
@@ -51,22 +49,20 @@ function calib = calibrateBoard(img)
     wedgeToSectionId(juniorWedge) = uint8(2); % Junior
     wedgeToSectionId(seniorWedge) = uint8(3); % Senior
 
-    % ---- Overlay (keep figure open) ----
+    % display
+    if showOverlay
     hold on;
 
-    % mark center
     plot(center(1), center(2), 'yx', 'MarkerSize', 12, 'LineWidth', 2);
 
-    % boundary rays
     L = 1000;
     for ang = boundaries
         dx = cosd(ang);
-        dy = -sind(ang); % image y-down
+        dy = -sind(ang);
         plot([center(1) center(1)+L*dx], [center(2) center(2)+L*dy], 'y-', 'LineWidth', 2);
     end
 
-    % label wedge centers with Soph/Jun/Sen
-    wedgeCenters = mod(boundaries + 60, 360); % midpoint of each wedge
+    wedgeCenters = mod(boundaries + 60, 360);
     labels = strings(1,3);
     labels(wedgeToSectionId==1) = "Soph";
     labels(wedgeToSectionId==2) = "Junior";
@@ -81,13 +77,11 @@ function calib = calibrateBoard(img)
 
     hold off;
     title("Calibration overlay (close this window when satisfied)");
-
-    fprintf("Calibration: boundaries=[%.1f %.1f %.1f], wedgeToSectionId=[%d %d %d]\n", ...
-        boundaries(1), boundaries(2), boundaries(3), ...
-        wedgeToSectionId(1), wedgeToSectionId(2), wedgeToSectionId(3));
-
-    disp("Press any key to continue...");
     pause;
+    end
+
+    close(gcf);  % always close calibration window for demo
+
 
 
     % ---- Pack outputs ----

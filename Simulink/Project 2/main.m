@@ -5,7 +5,8 @@ cam = acquireImage("init");
 img = acquireImage(cam);
 
 % Calibration
-calib = calibrateBoard(img);
+% T/F for overlay
+calib = calibrateBoard(img, false);
 
 % Detection
 % Will pull from Endia's detection code
