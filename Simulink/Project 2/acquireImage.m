@@ -4,11 +4,11 @@ function out = acquireImage(arg)
         cams = webcamlist;
         cam = webcam(cams{2}); % for a device with an integrated cam thee webcam is #2. change if needed
         
-        % pause(.2) Maybe needed if camera needs time to initialize to take
+        pause(.2) %Maybe needed if camera needs time to initialize to take
         % a good picture
         
         cam.Resolution = '640x480';
-        cam.Saturation = 150; % makes the colors pop more and hopefully makes detection a little easier
+        cam.Saturation = 200; % makes the colors pop more and hopefully makes detection a little easier
         out = cam;
         return;
     end
