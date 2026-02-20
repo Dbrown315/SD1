@@ -9,8 +9,6 @@ img = acquireImage(cam);
 calib = calibrateBoard(img, false);
 
 % Detection
-% Will pull from Endia's detection code
-% For now fake it
 det = detectTiles(img);
 figure('Name','Centroid Debug'); imshow(img); hold on;
 plot(det.centroidsPx(:,1), det.centroidsPx(:,2), 'gx', 'MarkerSize', 12, 'LineWidth', 2);
