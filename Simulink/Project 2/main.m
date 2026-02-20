@@ -11,7 +11,7 @@ calib = calibrateBoard(img, false);
 % Detection
 % Will pull from Endia's detection code
 % For now fake it
-det = fakeDetect(img, 24);
+det = fakeDetectByClick(img, 24);
 
 % Build gameState (angles + sections + results)
 gameState = processBoardImage(img, calib, det);
