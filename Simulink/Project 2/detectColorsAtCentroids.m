@@ -35,7 +35,7 @@ function [colorId, conf] = detectColorsAtCentroids(imgRGB, centroidsPx)
         vp = V(y1:y2, x1:x2);
 
         %sp > 0.25 for no white and value > 0.25 for no dark shadow
-        mask = sp > 0.25 & vp > 0.25;
+        mask = sp > 0.20 & vp > 0.25;
 
         %Determine the noncolor patches
         if nnz(mask) < 10
