@@ -1,38 +1,32 @@
-function det = detectTileCentroids(imgRGB, expectedN)
-% Returns det.N and det.centroidsPx from a single image.
-% Uses a "colorfulness via grayscale subtraction" mask.
-% expectedN = 24 typically.
+function det = detectTileCentroids(bgRGB, imgRGB, expectedN)
+% Background subtraction for tile centroid detection.
+% bgRGB: blank-board image (same camera pose/lighting)
+% imgRGB: colored-board image
+% Returns det.N, det.centroidsPx, det.mask, det.diffMag
 
-    if nargin < 2, expectedN = 24; end
+    if nargin < 3, expectedN = 24; end
 
-    % --- colorfulness mask via grayscale subtraction ---
-    G = rgb2gray(imgRGB);                 % uint8
-    grayRGB = repmat(G, [1 1 3]);         % uint8  HxWx3
-    D = imabsdiff(imgRGB, grayRGB);       % uint8  HxWx3
+    A = im2double(bgRGB);
+    B = im2double(imgRGB);
 
-    % scalar magnitude (0..~3). Use double for stable thresholding
-    mag = sum(im2double(D), 3);
+    % absolute RGB difference magnitude
+    D = abs(B - A);
+    diffMag = sum(D, 3);   % roughly 0..3
 
-    % Reject dark pixels (shadows) using grayscale brightness
-    Gd = im2double(G);
+    % Threshold (main knob)
+    tDiff = 0.70;
+    mask = diffMag > tDiff;
 
-    % --- threshold (TUNE THESE) ---
-    tMag = 0.24;    % higher = stricter, fewer pixels (try 0.15..0.30)
-    tGray = 0.15;   % ignore very dark areas (try 0.15..0.30)
 
-    mask = (mag > tMag) & (Gd > tGray);
-
-    % --- cleanup ---
-    %mask = imopen(mask, strel('disk', 1));
-    
+    % Morphology: heal and solidify tiles
+    %mask = imclose(mask, strel('disk', 6));
     %mask = imfill(mask, 'holes');
-    mask = imerode(mask, strel('disk',1));
-    
+    %mask = bwareaopen(mask, 250);
 
-    % Optional: remove tiny junk
-    mask = bwareaopen(mask, 400);
+    % OPTIONAL: if you ever see border junk
+    % mask = imclearborder(mask);
 
-    % --- blobs -> centroids ---
+    % Connected components -> stats
     CC = bwconncomp(mask);
     stats = regionprops(CC, 'Centroid', 'Area');
 
@@ -40,21 +34,22 @@ function det = detectTileCentroids(imgRGB, expectedN)
         det.N = 0;
         det.centroidsPx = zeros(0,2);
         det.mask = mask;
-        det.mag = mag;         % optional debug
+        det.diffMag = diffMag;
         return;
     end
 
+    % Keep biggest blobs
     areas = [stats.Area];
     [~, idx] = sort(areas, 'descend');
-
     N = min(expectedN, numel(idx));
+
     centroids = zeros(N,2);
     for k = 1:N
-        centroids(k,:) = stats(idx(k)).Centroid;  % [x y]
+        centroids(k,:) = stats(idx(k)).Centroid;
     end
 
     det.N = N;
     det.centroidsPx = centroids;
-    det.mask = mask;   % keep for debugging
-    det.mag = mag;     % keep for debugging
+    det.mask = mask;
+    det.diffMag = diffMag;
 end

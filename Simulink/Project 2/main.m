@@ -1,27 +1,28 @@
 clear; clc; close all;
 
-% Cam init + snapshot
 cam = acquireImage("init");
+
+disp("Place BLANK board (no colored tiles). Press any key...");
+pause;
+bg = acquireImage(cam);
+
+disp("Place COLORED board. Press any key...");
+pause;
 img = acquireImage(cam);
 
-% Calibration
-% T/F for overlay
 calib = calibrateBoard(img, false);
 
-% Detection
-det = detectTiles(img);
-figure; imshow(det.mask); title("Mask used for blobs");
+det = detectTileCentroids(bg, img, 24);
 
-figure; imshow(img); hold on;
-plot(det.centroidsPx(:,1), det.centroidsPx(:,2), 'gx', 'MarkerSize', 12, 'LineWidth', 2);
-title(sprintf("Centroids found: %d", det.N));
-hold off;
+% Optional debug during development:
+figure; imshow(det.diffMag, []); title("diffMag");
+figure; imshow(det.mask); title("bg-sub mask");
+figure; imshow(img); hold on; plot(det.centroidsPx(:,1), det.centroidsPx(:,2), 'gx'); hold off;
 
-% Build gameState (angles + sections + results)
+[det.colorId, det.conf] = detectColorsAtCentroids(img, det.centroidsPx);
+
 gameState = processBoardImage(img, calib, det);
 
-% Query loop (CLI) 
 while true
-    keepGoing = queryAndDisplay(gameState);
-    if ~keepGoing, break; end
+    if ~queryAndDisplay(gameState), break; end
 end
