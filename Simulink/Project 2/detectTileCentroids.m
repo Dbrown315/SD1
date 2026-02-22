@@ -17,15 +17,16 @@ function det = detectTileCentroids(imgRGB, expectedN)
     Gd = im2double(G);
 
     % --- threshold (TUNE THESE) ---
-    tMag = 0.20;    % higher = stricter, fewer pixels (try 0.15..0.30)
-    tGray = 0.12;   % ignore very dark areas (try 0.15..0.30)
+    tMag = 0.24;    % higher = stricter, fewer pixels (try 0.15..0.30)
+    tGray = 0.15;   % ignore very dark areas (try 0.15..0.30)
 
     mask = (mag > tMag) & (Gd > tGray);
 
     % --- cleanup ---
-    mask = imopen(mask, strel('disk', 1));
+    %mask = imopen(mask, strel('disk', 1));
     
     %mask = imfill(mask, 'holes');
+    mask = imerode(mask, strel('disk',1));
     
 
     % Optional: remove tiny junk

@@ -10,8 +10,6 @@ calib = calibrateBoard(img, false);
 
 % Detection
 det = detectTiles(img);
-
-figure; imshow(det.mag, []); title("Colorfulness magnitude (mag)");
 figure; imshow(det.mask); title("Mask used for blobs");
 
 figure; imshow(img); hold on;
