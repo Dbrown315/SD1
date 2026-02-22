@@ -1,38 +1,43 @@
 function det = detectTileCentroids(imgRGB, expectedN)
-% Returns det.N and det.centroidsPx from a single image.
-% Uses a "colorfulness via grayscale subtraction" mask.
-% expectedN = 24 typically.
+% Detect tile blobs/centroids using RGB class centers + distance threshold.
 
     if nargin < 2, expectedN = 24; end
 
-    % --- colorfulness mask via grayscale subtraction ---
-    G = rgb2gray(imgRGB);                 % uint8
-    grayRGB = repmat(G, [1 1 3]);         % uint8  HxWx3
-    D = imabsdiff(imgRGB, grayRGB);       % uint8  HxWx3
+    I = im2double(imgRGB);
+    R = I(:,:,1) * 255;
+    G = I(:,:,2) * 255;
+    B = I(:,:,3) * 255;
 
-    % scalar magnitude (0..~3). Use double for stable thresholding
-    mag = sum(im2double(D), 3);
+    % ---- reject black divider lines / shadows ----
+    intensity = (R + G + B) / 3;
+    notBlack = intensity > 60;     % tune: 60..90
 
-    % Reject dark pixels (shadows) using grayscale brightness
-    Gd = im2double(G);
+    % ---- RGB class centers (from your samples; tune if needed) ----
+    cRed    = [195,  91, 109];
+    cGreen  = [136, 164, 129];
+    cBlue   = [ 95,  96, 167];
+    cPurple = [146,  97, 150];
 
-    % --- threshold (TUNE THESE) ---
-    tMag = 0.24;    % higher = stricter, fewer pixels (try 0.15..0.30)
-    tGray = 0.15;   % ignore very dark areas (try 0.15..0.30)
+    % ---- distance to nearest center ----
+    dRed    = rgbDist(R,G,B, cRed);
+    dGreen  = rgbDist(R,G,B, cGreen);
+    dBlue   = rgbDist(R,G,B, cBlue);
+    dPurple = rgbDist(R,G,B, cPurple);
 
-    mask = (mag > tMag) & (Gd > tGray);
+    dMin = min( min(dRed,dGreen), min(dBlue,dPurple) );
 
-    % --- cleanup ---
-    %mask = imopen(mask, strel('disk', 1));
-    
+    % ---- threshold (key knob) ----
+    dThresh = 55;   % tune: 40..70 depending on lighting
+
+    mask = notBlack & (dMin < dThresh);
+
+    % ---- cleanup (heal, fill, then separate) ----
+    %mask = imclose(mask, strel('disk', 6));
     %mask = imfill(mask, 'holes');
-    mask = imerode(mask, strel('disk',1));
-    
+    %mask = imopen(mask, strel('disk', 2));
+    %mask = bwareaopen(mask, 350);
 
-    % Optional: remove tiny junk
-    mask = bwareaopen(mask, 400);
-
-    % --- blobs -> centroids ---
+    % ---- blobs -> centroids ----
     CC = bwconncomp(mask);
     stats = regionprops(CC, 'Centroid', 'Area');
 
@@ -40,7 +45,6 @@ function det = detectTileCentroids(imgRGB, expectedN)
         det.N = 0;
         det.centroidsPx = zeros(0,2);
         det.mask = mask;
-        det.mag = mag;         % optional debug
         return;
     end
 
@@ -50,11 +54,14 @@ function det = detectTileCentroids(imgRGB, expectedN)
     N = min(expectedN, numel(idx));
     centroids = zeros(N,2);
     for k = 1:N
-        centroids(k,:) = stats(idx(k)).Centroid;  % [x y]
+        centroids(k,:) = stats(idx(k)).Centroid;
     end
 
     det.N = N;
     det.centroidsPx = centroids;
-    det.mask = mask;   % keep for debugging
-    det.mag = mag;     % keep for debugging
+    det.mask = mask;
+end
+
+function d = rgbDist(R,G,B, c)
+    d = sqrt((R-c(1)).^2 + (G-c(2)).^2 + (B-c(3)).^2);
 end
