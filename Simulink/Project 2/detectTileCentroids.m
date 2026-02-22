@@ -1,26 +1,35 @@
 function det = detectTileCentroids(imgRGB, expectedN)
 % Returns det.N and det.centroidsPx from a single image.
+% Uses a "colorfulness via grayscale subtraction" mask.
 % expectedN = 24 typically.
 
     if nargin < 2, expectedN = 24; end
 
-    hsv = rgb2hsv(imgRGB);
-    S = hsv(:,:,2);
-    V = hsv(:,:,3);
+    % --- colorfulness mask via grayscale subtraction ---
+    G = rgb2gray(imgRGB);                 % uint8
+    grayRGB = repmat(G, [1 1 3]);         % uint8  HxWx3
+    D = imabsdiff(imgRGB, grayRGB);       % uint8  HxWx3
 
-    % --- mask likely tile pixels ---
-    % Tune these two numbers for your lighting
-    minS = 0.50;   % rejects white/gray paper
-    minV = 0.65;   % rejects dark shadow/background
-    mask = (S > minS) & (V > minV);
+    % scalar magnitude (0..~3). Use double for stable thresholding
+    mag = sum(im2double(D), 3);
+
+    % Reject dark pixels (shadows) using grayscale brightness
+    Gd = im2double(G);
+
+    % --- threshold (TUNE THESE) ---
+    tMag = 0.20;    % higher = stricter, fewer pixels (try 0.15..0.30)
+    tGray = 0.12;   % ignore very dark areas (try 0.15..0.30)
+
+    mask = (mag > tMag) & (Gd > tGray);
 
     % --- cleanup ---
-    mask = imopen(mask, strel('disk', 3));
-    mask = imclose(mask, strel('disk', 6));
-    mask = imfill(mask, 'holes');
+    mask = imopen(mask, strel('disk', 1));
+    
+    %mask = imfill(mask, 'holes');
+    
 
     % Optional: remove tiny junk
-    mask = bwareaopen(mask, 200);
+    mask = bwareaopen(mask, 400);
 
     % --- blobs -> centroids ---
     CC = bwconncomp(mask);
@@ -30,6 +39,7 @@ function det = detectTileCentroids(imgRGB, expectedN)
         det.N = 0;
         det.centroidsPx = zeros(0,2);
         det.mask = mask;
+        det.mag = mag;         % optional debug
         return;
     end
 
@@ -44,5 +54,6 @@ function det = detectTileCentroids(imgRGB, expectedN)
 
     det.N = N;
     det.centroidsPx = centroids;
-    det.mask = mask;   % keep for debugging (optional)
+    det.mask = mask;   % keep for debugging
+    det.mag = mag;     % keep for debugging
 end

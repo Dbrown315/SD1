@@ -10,13 +10,14 @@ calib = calibrateBoard(img, false);
 
 % Detection
 det = detectTiles(img);
-figure('Name','Centroid Debug'); imshow(img); hold on;
-plot(det.centroidsPx(:,1), det.centroidsPx(:,2), 'gx', 'MarkerSize', 12, 'LineWidth', 2);
-title(sprintf("Detected centroids: %d", det.N));
-hold off;
 
-figure('Name','Tile Mask'); imshow(det.mask);
-title("Mask used for blob detection");
+figure; imshow(det.mag, []); title("Colorfulness magnitude (mag)");
+figure; imshow(det.mask); title("Mask used for blobs");
+
+figure; imshow(img); hold on;
+plot(det.centroidsPx(:,1), det.centroidsPx(:,2), 'gx', 'MarkerSize', 12, 'LineWidth', 2);
+title(sprintf("Centroids found: %d", det.N));
+hold off;
 
 % Build gameState (angles + sections + results)
 gameState = processBoardImage(img, calib, det);
