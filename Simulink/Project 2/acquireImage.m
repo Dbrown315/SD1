@@ -12,6 +12,8 @@ function out = acquireImage(arg)
         cam.Brightness = 180; % default 128
         cam.Contrast = 160;
         cam.Sharpness = 255;
+        cam.ExposureMode = 'manual';
+        cam.Exposure = -5;
         out = cam;
         return;
     end
