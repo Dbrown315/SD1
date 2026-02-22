@@ -36,14 +36,16 @@ function keepGoing = queryAndDisplay(gameState)
     
     title(sprintf("Color=%s, Section=%s", c, s));
 
-
     if ~isempty(hits)
         xy = vertcat(hits.centroidPx);
         plot(xy(:,1), xy(:,2), 'gx', 'MarkerSize', 12, 'LineWidth', 2);
 
         for i = 1:numel(hits)
+            % Display angle where 0° is straight up (visual), still CCW
+            thetaUpDeg = mod(hits(i).thetaDeg - 90, 360);
+
             text(hits(i).centroidPx(1)+6, hits(i).centroidPx(2), ...
-                sprintf("%.1f°", hits(i).thetaDeg), 'Color','y','FontSize',10);
+                sprintf("%.1f°", thetaUpDeg), 'Color','y','FontSize',10);
         end
     else
         disp("No matches found.");

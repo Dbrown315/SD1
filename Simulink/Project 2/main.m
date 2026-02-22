@@ -14,10 +14,10 @@ calib = calibrateBoard(img, false);
 
 det = detectTileCentroids(bg, img, 24);
 
-% Optional debug during development:
-figure; imshow(det.diffMag, []); title("diffMag");
-figure; imshow(det.mask); title("bg-sub mask");
-figure; imshow(img); hold on; plot(det.centroidsPx(:,1), det.centroidsPx(:,2), 'gx'); hold off;
+% Optional debug 
+%figure; imshow(det.diffMag, []); title("diffMag");
+%figure; imshow(det.mask); title("bg-sub mask");
+%figure; imshow(img); hold on; plot(det.centroidsPx(:,1), det.centroidsPx(:,2), 'gx'); hold off;
 
 [det.colorId, det.conf] = detectColorsAtCentroids(img, det.centroidsPx);
 
