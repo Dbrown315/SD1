@@ -1,2 +1,14 @@
 
 *.asv
+
+/Simulink/Project 2/Helpers/assignSection.m
+
+/Simulink/Project 3/SpringMotorModel.hex
+
+/Simulink/Project 3/SpringMotorModel.elf
+
+/Simulink/Project 3/SpringMotorModel.eep
+
+*.slxc
+
+*.r2023b
