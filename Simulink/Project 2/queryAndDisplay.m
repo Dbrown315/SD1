@@ -1,6 +1,7 @@
 % CLI prompt and prompt results
-function keepGoing = queryAndDisplay(gameState)
+function [keepGoing, hits] = queryAndDisplay(gameState)
     keepGoing = true;
+    hits = [];
 
     % --- prompt ---
     c = lower(strtrim(string(input("Color (red/blue/purple/green) or q: ","s"))));
@@ -42,7 +43,7 @@ function keepGoing = queryAndDisplay(gameState)
 
         for i = 1:numel(hits)
             % Display angle where 0° is straight up (visual), still CCW
-            thetaUpDeg = mod(hits(i).thetaDeg - 90, 360);
+            thetaUpDeg = hits(i).thetaDeg; % 0 degrees = right
 
             text(hits(i).centroidPx(1)+6, hits(i).centroidPx(2), ...
                 sprintf("%.1f°", thetaUpDeg), 'Color','y','FontSize',10);

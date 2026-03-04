@@ -12,3 +12,13 @@
 *.slxc
 
 *.r2023b
+
+/Simulink/SpringMotorModel.eep
+
+/Simulink/SpringMotorModel.elf
+
+/Simulink/SpringMotorModel.hex
+
+/Simulink/slprj/
+
+/Simulink/SpringMotorModel_ert_rtw/

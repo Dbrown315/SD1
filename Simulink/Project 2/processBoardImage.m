@@ -33,7 +33,7 @@ function gameState = processBoardImage(img, calib, det)
         gameState.tiles(k).thetaDeg   = th;
         gameState.tiles(k).sectionId = uint8(calib.wedgeToSectionId(w)); % Soph/Jun/Sen correctly
 
-        % color placeholder (use det.colorId later)
+        % color 
         if isfield(det,'colorId')
             gameState.tiles(k).colorId = uint8(det.colorId(k));
         else
