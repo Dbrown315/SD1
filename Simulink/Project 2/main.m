@@ -4,26 +4,26 @@ cam = acquireImage("init");
 
 disp("Place BLANK board (no colored tiles). Press any key...");
 pause;
-bg = acquireImage();
+bg = acquireImage(cam);
 
 % Optional picture for debugging
 % bg = imread("Project 2\Boards\Blank.jpg");
 
 disp("Place COLORED board. Press any key...");
 pause;
-img = acquireImage();
+img = acquireImage(cam);
 
 % Optional picture for debugging
 %img = imread("Project 2\Boards\Standard_Colored.jpg");
 
-calib = calibrateBoard(img, false);
+calib = calibrateBoard(img, true);
 
 det = detectTileCentroids(bg, img, 24);
 
 % Optional debug 
-%figure; imshow(det.diffMag, []); title("diffMag");
-%figure; imshow(det.mask); title("bg-sub mask");
-%figure; imshow(img); hold on; plot(det.centroidsPx(:,1), det.centroidsPx(:,2), 'gx'); hold off;
+figure; imshow(det.diffMag, []); title("diffMag");
+figure; imshow(det.mask); title("bg-sub mask");
+figure; imshow(img); hold on; plot(det.centroidsPx(:,1), det.centroidsPx(:,2), 'gx'); hold off;
 
 [det.colorId, det.conf] = detectColorsAtCentroids(img, det.centroidsPx);
 
@@ -39,6 +39,7 @@ while true
 
     if numel(hits) < 2
         disp("Need at lesat 2 matches to alternate between two tiles.");
+        continue;
     end
 
     [t1, t2] = chooseTwoTiles(hits);

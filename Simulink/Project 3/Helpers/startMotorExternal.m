@@ -8,7 +8,7 @@ function simCtl = startMotorExternal(model)
     load_system(model);
 
     % External mode
-    set_param(model, "SimulationMode", "External");
+    set_param(model, "SimulationMode", "external");
     set_param(model, "SimulationCommand", "connect");
     set_param(model, "SimulationCommand", "start");
 
