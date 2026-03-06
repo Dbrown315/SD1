@@ -12,8 +12,8 @@ function out = detectDiceTotal(diceRGB, blankRGB, varargin)
 % optional args
 p = inputParser;
 addParameter(p, "ShowDebug", true, @(x)islogical(x) || isnumeric(x));
-addParameter(p, "MinPipArea", 12, @(x)isnumeric(x) && isscalar(x)); %25 12
-addParameter(p, "MaxPipArea", 400, @(x)isnumeric(x) && isscalar(x)); %800 200
+addParameter(p, "MinPipArea", 5, @(x)isnumeric(x) && isscalar(x)); %25 12
+addParameter(p, "MaxPipArea", 800, @(x)isnumeric(x) && isscalar(x)); %800 200 400
 
 % Shadow / darkness controls 0,45  changed t0 0.35
 addParameter(p, "DarkPixelThresh", 0.35, @(x)isnumeric(x) && isscalar(x));  % lower=stricter
@@ -46,7 +46,7 @@ diffHP = diffN - bgEst;
 diffHP(diffHP < 0) = 0;
 
 % (3) Slight smoothing
-diffSm = imgaussfilt(diffHP, 0.5); %0.8 0.5
+diffSm = imgaussfilt(diffHP, 0.35); %0.8 0.5
 
 % (4) Require pixels to be truly dark in the dice image
 darkPix = gDice < darkThr;
@@ -65,9 +65,10 @@ end
 
 t = graythresh(nz);
 %works with 0.75 with light change
-t = max(0.01, 0.70*t);  % tune 0.45..0.70 depending on lighting %was 0.6 
+t = max(0.01, 0.65*t);  % tune 0.45..0.70 depending on lighting %was 0.6 
 pipMask = (diffSm > t) & darkPix;
-
+ 
+%0.70
 
 %%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -99,7 +100,8 @@ for k = 1:cc.NumObjects
     ecc = stats(k).Eccentricity;
     sol = stats(k).Solidity;
 
-    if A >= minA && A <= maxA && ecc < 0.92 && sol > 0.65 %99 55
+    %%%%%%%%%%%% 00.92 0.65   0.96
+    if A >= minA && A <= maxA && ecc < 0.96 && sol > 0.10 %99 55   
         keep(k) = true;
         centroids(k,:) = stats(k).Centroid;
     end
