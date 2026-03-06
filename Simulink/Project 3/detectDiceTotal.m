@@ -12,10 +12,10 @@ function out = detectDiceTotal(diceRGB, blankRGB, varargin)
 % optional args
 p = inputParser;
 addParameter(p, "ShowDebug", true, @(x)islogical(x) || isnumeric(x));
-addParameter(p, "MinPipArea", 5, @(x)isnumeric(x) && isscalar(x)); %25 12
-addParameter(p, "MaxPipArea", 800, @(x)isnumeric(x) && isscalar(x)); %800 200 400
+addParameter(p, "MinPipArea", 5, @(x)isnumeric(x) && isscalar(x)); 
+addParameter(p, "MaxPipArea", 800, @(x)isnumeric(x) && isscalar(x)); 
 
-% Shadow / darkness controls 0,45  changed t0 0.35
+% Shadow / darkness controls
 addParameter(p, "DarkPixelThresh", 0.35, @(x)isnumeric(x) && isscalar(x));  % lower=stricter
 addParameter(p, "ShadowOpenRadius", 35, @(x)isnumeric(x) && isscalar(x));   % bigger=removes more smooth shadow
 parse(p, varargin{:});
@@ -64,25 +64,19 @@ if isempty(nz)
 end
 
 t = graythresh(nz);
-%works with 0.75 with light change
-t = max(0.01, 0.65*t);  % tune 0.45..0.70 depending on lighting %was 0.6 
+t = max(0.01, 0.65*t);  % tune depending on lighting DON'T change the lighnting
 pipMask = (diffSm > t) & darkPix;
  
-%0.70
 
 %%
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 % Clean up blobs
 
 pipMask = bwareaopen(pipMask, minA);          % remove tiny specks
 pipMask = imopen(pipMask, strel('disk', 1));  % remove tiny bridges
 pipMask = bwareaopen(pipMask, minA);          % re-remove tiny specks
 
-%pipMask = imerode(pipMask, strel('disk',1));
-%pipMask = imdilate(pipMask, strel('disk',1));
 
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Restore size slightly
 pipMask = imdilate(pipMask, strel('disk',1));
 pipMask = bwareaopen(pipMask, minA);
@@ -100,8 +94,7 @@ for k = 1:cc.NumObjects
     ecc = stats(k).Eccentricity;
     sol = stats(k).Solidity;
 
-    %%%%%%%%%%%% 00.92 0.65   0.96
-    if A >= minA && A <= maxA && ecc < 0.96 && sol > 0.10 %99 55   
+    if A >= minA && A <= maxA && ecc < 0.96 && sol > 0.10  
         keep(k) = true;
         centroids(k,:) = stats(k).Centroid;
     end
