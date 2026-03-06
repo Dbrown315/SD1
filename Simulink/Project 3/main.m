@@ -4,11 +4,13 @@ cam = acquireImage("init");
 %RGB = imread('Blank.jpg');
 %RGBs = imread('Standard_Colored.jpg');
 
-disp("Place BLANK board (no colored tiles). Press any key...");
+%disp("Place BLANK board (no colored tiles). Press any key...");
+%pause;
+%bg = acquireImage(cam); 
+
+disp("Place WHITE board (no colored tiles). Press any key...");
 pause;
-bg = acquireImage(cam); 
-
-
+bgW = acquireImage(cam);
 %disp("Place COLORED board. Press any key...");
 %pause;
 %img = acquireImage(cam);
@@ -33,7 +35,7 @@ pause;
 
 diceImg = acquireImage(cam);
 
-outDice =detectDiceTotal(diceImg, bg, "ShowDebug", true);
+outDice =detectDiceTotal(diceImg, bgW, "ShowDebug", true);
 
 fprintf("TOTAL = %d\n", outDice.total);
 
