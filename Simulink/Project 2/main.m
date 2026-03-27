@@ -42,6 +42,14 @@ setThetaCmdDeg(simCtl, cmdAngle);
 currentAngle = cmdAngle;
 pause(2);
 
+% Display scenario for tile 1
+yearStr = sectionIdToString(gameState.tiles(currentTileIdx).sectionId);
+colorStr = colorIdToString(gameState.tiles(currentTileIdx).colorId);
+scenario_string = get_scenario(yearStr, colorStr);
+
+fprintf("\nTile %d: %s %s\n", gameState.tiles(currentTileIdx).id, yearStr, colorStr);
+fprintf("Scenario: %s\n\n", scenario_string);
+
 %% Main roll loop
 while true
     resp = input('Press Enter to roll, or type q to quit: ', 's');
@@ -72,6 +80,14 @@ while true
     currentAngle = cmdAngle;
 
     pause(2);
+
+     % Display scenario for landed tile
+    yearStr = sectionIdToString(targetTile.sectionId);
+    colorStr = colorIdToString(targetTile.colorId);
+    scenario_string = get_scenario(yearStr, colorStr);
+
+    fprintf("\nTile %d: %s %s\n", targetTile.id, yearStr, colorStr);
+    fprintf("Scenario: %s\n\n", scenario_string);
 end
 
 %% Return to zero before exit
