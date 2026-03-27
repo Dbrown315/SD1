@@ -68,7 +68,13 @@ while true
         continue;
     end
 
-    currentTileIdx = mod((currentTileIdx - 1) + roll, Ntiles) + 1;
+    nextTileIdx = currentTileIdx + roll;
+
+    if nextTileIdx >= Ntiles
+        currentTileIdx = Ntiles;
+    else
+        currentTileIdx = nextTileIdx;
+    end
 
     targetTile = gameState.tiles(currentTileIdx);
     targetAngle = targetTile.thetaDeg;
@@ -88,6 +94,12 @@ while true
 
     fprintf("\nTile %d: %s %s\n", targetTile.id, yearStr, colorStr);
     fprintf("Scenario: %s\n\n", scenario_string);
+
+    % Game finish
+    if currentTileIdx == 24
+        disp("Congratulations! You've graduated!.");
+        break;
+    end
 end
 
 %% Return to zero before exit
