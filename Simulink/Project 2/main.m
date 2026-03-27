@@ -32,6 +32,24 @@ gameState = processBoardImage(img, calib, det);
 model = "SpringMotorModel";
 simCtl = startMotorExternal(model);
 
+%% Dice
+
+cam = acquireImage("init");
+
+disp("Ensure dice encloser is empty. Press any key...");
+pause;
+bgW = acquireImage(cam);
+
+disp("Place die in enclosure. Press any key...");
+pause;
+
+diceImg = acquireImage(cam);
+
+outDice =detectDiceTotal(diceImg, bgW, "ShowDebug", true);
+
+fprintf("TOTAL = %d\n", outDice.total);
+
+
 setThetaCmdDeg(simCtl, 20);   % or 30
 pause(2);
 setThetaCmdDeg(simCtl, 0);
