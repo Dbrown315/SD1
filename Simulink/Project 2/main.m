@@ -1,52 +1,85 @@
 clear; clc; close all;
 
+%% Build board
 gameState = buildHardcodedBoard();
+Ntiles = gameState.N;
 
+%% Start motor and force safe shutdown
 model = "SpringMotorModel";
 simCtl = startMotorExternal(model);
 
-%% Dice section
+%% Initialize camera for dice
 cam = acquireImage("init");
 
-disp("Ensure dice encloser is empty. Press any key...");
+%% Capture empty dice enclosure once before game starts
+disp("Ensure dice enclosure is empty. Press any key...");
 pause;
 bgW = acquireImage(cam);
 
-disp("Place die in enclosure. Press any key...");
-pause;
-diceImg = acquireImage(cam);
-
-outDice = detectDiceTotal(diceImg, bgW, "ShowDebug", true);
-fprintf("TOTAL = %d\n", outDice.total);
-
-setThetaCmdDeg(simCtl, 20);
-pause(2);
+%% Initialize motor to zero
+disp("Initializing motor to 0 deg...");
 setThetaCmdDeg(simCtl, 0);
+assignin("base","theta_cmd_deg",0);
 pause(2);
 
-%% Query loop
-while true
-    [keepGoing, hits] = queryAndDisplayHardcoded(gameState);
-    if ~keepGoing, break; end
+disp("Calibrate pointer so that 0 deg is aligned correctly.");
+resp = input('Press Enter when ready to move to tile 1, or type q to quit: ', 's');
+if strcmpi(strtrim(resp), 'q')
+    stopMotorExternal(simCtl);
+    return;
+end
 
-    if numel(hits) < 2
-        disp("Need at least 2 matches to alternate between two tiles.");
+%% Start game at tile 1
+currentTileIdx = 1;
+currentAngle = 0;
+
+tile1Angle = gameState.tiles(currentTileIdx).thetaDeg;
+cmdAngle = nearestEquivAngle(tile1Angle, currentAngle);
+
+fprintf("Moving to tile %d (%.1f deg)\n", ...
+    gameState.tiles(currentTileIdx).id, gameState.tiles(currentTileIdx).thetaDeg);
+setThetaCmdDeg(simCtl, cmdAngle);
+currentAngle = cmdAngle;
+pause(2);
+
+%% Main roll loop
+while true
+    resp = input('Press Enter to roll, or type q to quit: ', 's');
+    if strcmpi(strtrim(resp), 'q')
+        break;
+    end
+    diceImg = acquireImage(cam);
+
+    outDice = detectDiceTotal(diceImg, bgW, "ShowDebug", true);
+    roll = outDice.total;
+
+    fprintf("Rolled: %d\n", roll);
+
+    if isempty(roll) || ~isscalar(roll) || ~isfinite(roll) || roll < 1
+        disp("Dice read failed. Try again.");
         continue;
     end
 
-    [t1, t2] = chooseTwoTiles(hits);
+    currentTileIdx = mod((currentTileIdx - 1) + roll, Ntiles) + 1;
 
-    currentAngle = evalin("base","theta_cmd_deg");
+    targetTile = gameState.tiles(currentTileIdx);
+    targetAngle = targetTile.thetaDeg;
 
-    fprintf("Pointing to tile %d (%.1f deg)\n", t1.id, t1.thetaDeg);
-    theta1 = nearestEquivAngle(t1.thetaDeg, currentAngle);
-    setThetaCmdDeg(simCtl, theta1);
-    pause(2);
+    fprintf("Moving to tile %d (%.1f deg)\n", targetTile.id, targetAngle);
 
-    fprintf("Pointing to tile %d (%.1f deg)\n", t2.id, t2.thetaDeg);
-    theta2 = nearestEquivAngle(t2.thetaDeg, theta1);
-    setThetaCmdDeg(simCtl, theta2);
+    cmdAngle = nearestEquivAngle(targetAngle, currentAngle);
+    setThetaCmdDeg(simCtl, cmdAngle);
+    currentAngle = cmdAngle;
+
     pause(2);
 end
 
+%% Return to zero before exit
+disp("Returning motor to 0 deg...");
+cmdAngle = nearestEquivAngle(0, currentAngle);
+setThetaCmdDeg(simCtl, cmdAngle);
+pause(2);
+
 stopMotorExternal(simCtl);
+
+disp("Done.");
