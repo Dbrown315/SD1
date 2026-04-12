@@ -19,13 +19,6 @@ updateGameStatus(ui, "Initializing camera...", "Roll: -", "Scenario will appear 
 drawnow;
 cam = acquireImage("init");
 
-%% Capture empty dice enclosure once before game starts
-updateGameStatus(ui, "Ensure dice enclosure is empty, then press any key in the Command Window.", "Roll: -", "Scenario will appear here.");
-drawnow;
-disp("Ensure dice enclosure is empty. Press any key...");
-pause;
-bgW = acquireImage(cam);
-
 %% Manual zero calibration
 updateGameStatus(ui, ...
     "Manual 0 deg calibration: use j/k to rotate, s to save current position as 0 deg.", ...
@@ -66,8 +59,10 @@ while currentTileIdx < Ntiles
     drawnow;
     pause(1);
 
+    % Insert Servo Control Here
+
     diceImg = acquireImage(cam);
-    outDice = detectDiceTotal(diceImg, bgW, "ShowDebug", false);
+    outDice = detectDiceTotal_singleImage(diceImg, "ShowDebug", false);
     roll = outDice.total;
 
     if isempty(roll) || ~isscalar(roll) || ~isfinite(roll) || roll < 1
@@ -119,10 +114,15 @@ drawnow;
 pause(5);
 
 %% Return to calibrated zero before exit
-cmdAngle = nearestEquivAngle(zeroOffsetDeg, currentAngle);
-setThetaCmdDeg(simCtl, cmdAngle);
-pause(2);
-stopMotorExternal(simCtl);
+try
+    cmdAngle = nearestEquivAngle(zeroOffsetDeg, currentAngle);
+    setThetaCmdDeg(simCtl, cmdAngle);
+    pause(2);
+    stopMotorExternal(simCtl);
+catch 
+    disp('Error while trying to return motor to 0 degree point')
+end
+
 
 
 

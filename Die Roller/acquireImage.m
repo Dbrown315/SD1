@@ -2,7 +2,7 @@
 function out = acquireImage(arg)
     if isstring(arg) && arg == "init"
         cams = webcamlist;
-        cam = webcam(cams{2}); % for a device with an integrated cam thee webcam is #2. change if needed
+        cam = webcam(cams{2}); % for a device with an integrated cam the webcam is #2. change if needed
         
         pause(.2) %Maybe needed if camera needs time to initialize to take
         % a good picture
