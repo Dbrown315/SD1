@@ -119,127 +119,17 @@ drawnow;
 pause(5);
 
 %% Return to calibrated zero before exit
-updateGameStatus(ui, "Returning motor to calibrated 0 deg...", ui.RollLabel.Text, ui.ScenarioArea.Value);
-drawnow;
 cmdAngle = nearestEquivAngle(zeroOffsetDeg, currentAngle);
 setThetaCmdDeg(simCtl, cmdAngle);
 pause(2);
-
 stopMotorExternal(simCtl);
-updateGameStatus(ui, "Done.", ui.RollLabel.Text, ui.ScenarioArea.Value);
-drawnow;
 
 
-function ui = createGameStatusGUI()
-% Purpose: Create a simple hands-off status window for the board game.
-% Input:   none.
-% Output:  ui struct containing the GUI handles.
-
-    ui.Fig = uifigure('Name', 'Board Game Status', ...
-        'Position', [100 100 700 420]);
-
-    ui.StatusLabel = uilabel(ui.Fig, ...
-        'Position', [20 375 650 30], ...
-        'FontSize', 16, ...
-        'Text', 'Starting...');
-
-    ui.RollLabel = uilabel(ui.Fig, ...
-        'Position', [20 335 650 25], ...
-        'FontSize', 15, ...
-        'Text', 'Roll: -');
-
-    ui.ScenarioTitle = uilabel(ui.Fig, ...
-        'Position', [20 300 200 25], ...
-        'FontSize', 15, ...
-        'Text', 'Scenario');
-
-    ui.ScenarioArea = uitextarea(ui.Fig, ...
-        'Position', [20 20 650 275], ...
-        'Editable', 'off', ...
-        'FontSize', 14, ...
-        'Value', {'Scenario will appear here.'});
-end
 
 
-function updateGameStatus(ui, statusText, rollText, scenarioText)
-% Purpose: Update all text shown in the status GUI.
-% Input:   ui struct, status text, roll text, and scenario text.
-% Output:  none.
-
-    ui.StatusLabel.Text = string(statusText);
-    ui.RollLabel.Text = string(rollText);
-
-    if isstring(scenarioText) || ischar(scenarioText)
-        ui.ScenarioArea.Value = cellstr(string(scenarioText));
-    else
-        ui.ScenarioArea.Value = scenarioText;
-    end
-
-    drawnow;
-end
 
 
-function [currentAngle, zeroOffsetDeg] = manualZeroCalibration(simCtl, ui)
-% Purpose: Let the user jog the motor until the pointer is physically at 0 deg.
-% Input:   simCtl handle and GUI handle struct.
-% Output:  current commanded angle and zero offset in degrees.
 
-    smallStep = 5;
-    largeStep = 15;
-    currentAngle = 0;
 
-    % Move to the current reset position first.
-    setThetaCmdDeg(simCtl, currentAngle);
-    assignin("base", "theta_cmd_deg", currentAngle);
-    pause(1.5);
 
-    disp("Manual 0 deg calibration controls:");
-    disp("  j = small CCW step");
-    disp("  k = small CW step");
-    disp("  J = large CCW step");
-    disp("  K = large CW step");
-    disp("  s = save current position as physical 0 deg");
 
-    while true
-        prompt = sprintf('Current command %.1f deg. Enter j/k/J/K/s: ', currentAngle);
-        resp = input(prompt, 's');
-        resp = strtrim(resp);
-
-        if isempty(resp)
-            continue;
-        end
-
-        switch resp
-            case 'j'
-                currentAngle = currentAngle - smallStep;
-            case 'k'
-                currentAngle = currentAngle + smallStep;
-            case 'J'
-                currentAngle = currentAngle - largeStep;
-            case 'K'
-                currentAngle = currentAngle + largeStep;
-            case {'s', 'S'}
-                zeroOffsetDeg = currentAngle;
-                updateGameStatus(ui, ...
-                    sprintf("Calibrated physical 0 deg at command %.1f deg.", zeroOffsetDeg), ...
-                    "Roll: -", ...
-                    "Calibration saved. The game will now use this as the board's 0 deg reference.");
-                drawnow;
-                pause(1);
-                return;
-            otherwise
-                disp("Invalid input. Use j, k, J, K, or s.");
-                continue;
-        end
-
-        updateGameStatus(ui, ...
-            sprintf("Manual 0 deg calibration: current command %.1f deg", currentAngle), ...
-            "Roll: -", ...
-            "Use j/k for small steps, J/K for large steps, s to save the current position as 0 deg.");
-        drawnow;
-
-        setThetaCmdDeg(simCtl, currentAngle);
-        assignin("base", "theta_cmd_deg", currentAngle);
-        pause(0.8);
-    end
-end
