@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addonCore>
+  <label>Device Drivers</label>
+  <version>1.6.0.1</version>
+  <type>zip</type>
+  <identifier>e59410af-4a80-11e4-9553-005056977bd0</identifier>
+  <createdBy name="Giampiero Campa"/>
+  <image>resources/screenshot.png</image>
+</addonCore>
