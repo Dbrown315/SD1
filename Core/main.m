@@ -26,24 +26,19 @@ disp("Ensure dice enclosure is empty. Press any key...");
 pause;
 bgW = acquireImage(cam);
 
-%% Initialize motor to zero
-updateGameStatus(ui, "Initializing motor to 0 deg...", "Roll: -", "Scenario will appear here.");
+%% Manual zero calibration
+updateGameStatus(ui, ...
+    "Manual 0 deg calibration: use j/k to rotate, s to save current position as 0 deg.", ...
+    "Roll: -", ...
+    "In the Command Window: j = small CCW step, k = small CW step, J = large CCW step, K = large CW step, s = save current position.");
 drawnow;
-setThetaCmdDeg(simCtl, 0);
-assignin("base", "theta_cmd_deg", 0);
-pause(2);
 
-%% Calibration step before automatic play
-updateGameStatus(ui, "Calibrate pointer so that 0 deg is aligned correctly. Press Enter in the Command Window when ready.", "Roll: -", "Scenario will appear here.");
-drawnow;
-disp("Calibrate pointer so that 0 deg is aligned correctly.");
-input('Press Enter when ready to start the game: ', 's');
+[currentAngle, zeroOffsetDeg] = manualZeroCalibration(simCtl, ui);
 
 %% Start game at tile 1
 currentTileIdx = 1;
-currentAngle = 0;
 
-tile1Angle = gameState.tiles(currentTileIdx).thetaDeg;
+tile1Angle = gameState.tiles(currentTileIdx).thetaDeg + zeroOffsetDeg;
 cmdAngle = nearestEquivAngle(tile1Angle, currentAngle);
 
 updateGameStatus(ui, sprintf("Moving to tile %d (%.1f deg)...", ...
@@ -91,9 +86,9 @@ while currentTileIdx < Ntiles
     end
 
     targetTile = gameState.tiles(currentTileIdx);
-    targetAngle = targetTile.thetaDeg;
+    targetAngle = targetTile.thetaDeg + zeroOffsetDeg;
 
-    updateGameStatus(ui, sprintf("Moving to tile %d (%.1f deg)...", targetTile.id, targetAngle), ...
+    updateGameStatus(ui, sprintf("Moving to tile %d (%.1f deg)...", targetTile.id, targetTile.thetaDeg), ...
         sprintf("Roll: %d", roll), ui.ScenarioArea.Value);
     drawnow;
 
@@ -123,10 +118,10 @@ updateGameStatus(ui, "Congratulations! You've graduated!", ui.RollLabel.Text, ..
 drawnow;
 pause(5);
 
-%% Return to zero before exit
-updateGameStatus(ui, "Returning motor to 0 deg...", ui.RollLabel.Text, ui.ScenarioArea.Value);
+%% Return to calibrated zero before exit
+updateGameStatus(ui, "Returning motor to calibrated 0 deg...", ui.RollLabel.Text, ui.ScenarioArea.Value);
 drawnow;
-cmdAngle = nearestEquivAngle(0, currentAngle);
+cmdAngle = nearestEquivAngle(zeroOffsetDeg, currentAngle);
 setThetaCmdDeg(simCtl, cmdAngle);
 pause(2);
 
@@ -181,4 +176,70 @@ function updateGameStatus(ui, statusText, rollText, scenarioText)
     end
 
     drawnow;
+end
+
+
+function [currentAngle, zeroOffsetDeg] = manualZeroCalibration(simCtl, ui)
+% Purpose: Let the user jog the motor until the pointer is physically at 0 deg.
+% Input:   simCtl handle and GUI handle struct.
+% Output:  current commanded angle and zero offset in degrees.
+
+    smallStep = 5;
+    largeStep = 15;
+    currentAngle = 0;
+
+    % Move to the current reset position first.
+    setThetaCmdDeg(simCtl, currentAngle);
+    assignin("base", "theta_cmd_deg", currentAngle);
+    pause(1.5);
+
+    disp("Manual 0 deg calibration controls:");
+    disp("  j = small CCW step");
+    disp("  k = small CW step");
+    disp("  J = large CCW step");
+    disp("  K = large CW step");
+    disp("  s = save current position as physical 0 deg");
+
+    while true
+        prompt = sprintf('Current command %.1f deg. Enter j/k/J/K/s: ', currentAngle);
+        resp = input(prompt, 's');
+        resp = strtrim(resp);
+
+        if isempty(resp)
+            continue;
+        end
+
+        switch resp
+            case 'j'
+                currentAngle = currentAngle - smallStep;
+            case 'k'
+                currentAngle = currentAngle + smallStep;
+            case 'J'
+                currentAngle = currentAngle - largeStep;
+            case 'K'
+                currentAngle = currentAngle + largeStep;
+            case {'s', 'S'}
+                zeroOffsetDeg = currentAngle;
+                updateGameStatus(ui, ...
+                    sprintf("Calibrated physical 0 deg at command %.1f deg.", zeroOffsetDeg), ...
+                    "Roll: -", ...
+                    "Calibration saved. The game will now use this as the board's 0 deg reference.");
+                drawnow;
+                pause(1);
+                return;
+            otherwise
+                disp("Invalid input. Use j, k, J, K, or s.");
+                continue;
+        end
+
+        updateGameStatus(ui, ...
+            sprintf("Manual 0 deg calibration: current command %.1f deg", currentAngle), ...
+            "Roll: -", ...
+            "Use j/k for small steps, J/K for large steps, s to save the current position as 0 deg.");
+        drawnow;
+
+        setThetaCmdDeg(simCtl, currentAngle);
+        assignin("base", "theta_cmd_deg", currentAngle);
+        pause(0.8);
+    end
 end
