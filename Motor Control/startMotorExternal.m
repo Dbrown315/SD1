@@ -3,6 +3,9 @@ function simCtl = startMotorExternal(model)
 % Model must use a constant "theta_cmd_deg"
 
     theta_cmd_deg = 0;
+    servo_cmd_deg = 0;
+
+    assignin("base","servo_cmd_deg", servo_cmd_deg);
     assignin("base","theta_cmd_deg", theta_cmd_deg);
 
     load_system(model);

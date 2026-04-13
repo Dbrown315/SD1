@@ -8,7 +8,7 @@ function [currentAngle, zeroOffsetDeg] = manualZeroCalibration(simCtl, ui)
     currentAngle = 0;
 
     % Move to the current reset position first.
-    setThetaCmdDeg(simCtl, currentAngle);
+    setThetaCmdDeg(simCtl, currentAngle, "dc");
     assignin("base", "theta_cmd_deg", currentAngle);
     pause(1.5);
 
@@ -57,7 +57,7 @@ function [currentAngle, zeroOffsetDeg] = manualZeroCalibration(simCtl, ui)
             "Use j/k for small steps, J/K for large steps, s to save the current position as 0 deg.");
         drawnow;
 
-        setThetaCmdDeg(simCtl, currentAngle);
+        setThetaCmdDeg(simCtl, currentAngle, "dc");
         assignin("base", "theta_cmd_deg", currentAngle);
         pause(0.8);
     end

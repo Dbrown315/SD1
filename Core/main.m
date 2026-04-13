@@ -38,7 +38,7 @@ updateGameStatus(ui, sprintf("Moving to tile %d (%.1f deg)...", ...
     gameState.tiles(currentTileIdx).id, gameState.tiles(currentTileIdx).thetaDeg), ...
     "Roll: -", "Scenario will appear here.");
 drawnow;
-setThetaCmdDeg(simCtl, cmdAngle);
+setThetaCmdDeg(simCtl, cmdAngle, "dc");
 currentAngle = cmdAngle;
 pause(2);
 
@@ -59,7 +59,10 @@ while currentTileIdx < Ntiles
     drawnow;
     pause(1);
 
-    % Insert Servo Control Here
+    % Servo Control
+    setThetaCmdDeg(simCtl, 40,"servo");
+    pause(0.8)
+    setThetaCmdDeg(simCtl, 0, "servo");
 
     diceImg = acquireImage(cam);
     outDice = detectDiceTotal_singleImage(diceImg, "ShowDebug", false);
@@ -88,7 +91,7 @@ while currentTileIdx < Ntiles
     drawnow;
 
     cmdAngle = nearestEquivAngle(targetAngle, currentAngle);
-    setThetaCmdDeg(simCtl, cmdAngle);
+    setThetaCmdDeg(simCtl, cmdAngle, "dc");
     currentAngle = cmdAngle;
     pause(2);
 
@@ -116,7 +119,7 @@ pause(5);
 %% Return to calibrated zero before exit
 try
     cmdAngle = nearestEquivAngle(zeroOffsetDeg, currentAngle);
-    setThetaCmdDeg(simCtl, cmdAngle);
+    setThetaCmdDeg(simCtl, cmdAngle, "dc");
     pause(2);
     stopMotorExternal(simCtl);
 catch 
