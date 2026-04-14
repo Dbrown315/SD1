@@ -60,9 +60,10 @@ while currentTileIdx < Ntiles
     pause(1);
 
     % Servo Control
-    setThetaCmdDeg(simCtl, 40,"servo");
-    pause(0.8)
+    setThetaCmdDeg(simCtl, 15,"servo");
+    pause(2)
     setThetaCmdDeg(simCtl, 0, "servo");
+    pause(.5)
 
     diceImg = acquireImage(cam);
     outDice = detectDiceTotal_singleImage(diceImg, "ShowDebug", false);
