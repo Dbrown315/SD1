@@ -22,3 +22,13 @@
 /Simulink/slprj/
 
 /Simulink/SpringMotorModel_ert_rtw/
+
+/slprj/
+
+/SpringMotorModel_ert_rtw/
+
+*.hex
+
+*.elf
+
+*.eep

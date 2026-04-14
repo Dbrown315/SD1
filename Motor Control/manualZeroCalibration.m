@@ -13,10 +13,10 @@ function [currentAngle, zeroOffsetDeg] = manualZeroCalibration(simCtl, ui)
     pause(1.5);
 
     disp("Manual 0 deg calibration controls:");
-    disp("  j = small CCW step");
-    disp("  k = small CW step");
-    disp("  J = large CCW step");
-    disp("  K = large CW step");
+    disp("  k = small CCW step");
+    disp("  j = small CW step");
+    disp("  K = large CCW step");
+    disp("  J = large CW step");
     disp("  s = save current position as physical 0 deg");
 
     while true
