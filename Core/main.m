@@ -126,6 +126,8 @@ catch
     disp('Error while trying to return motor to 0 degree point')
 end
 
+close(ui.Fig);
+
 
 
 
