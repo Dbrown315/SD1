@@ -63,10 +63,10 @@ while currentTileIdx < Ntiles
     setThetaCmdDeg(simCtl, 15,"servo");
     pause(2)
     setThetaCmdDeg(simCtl, 0, "servo");
-    pause(.5)
+    pause(1)
 
     diceImg = acquireImage(cam);
-    outDice = detectDiceTotal_singleImage(diceImg, "ShowDebug", false);
+    outDice = detectDiceTotal_singleImage(diceImg, "ShowDebug", true);
     roll = outDice.total;
 
     if isempty(roll) || ~isscalar(roll) || ~isfinite(roll) || roll < 1
@@ -108,7 +108,7 @@ while currentTileIdx < Ntiles
         break;
     end
 
-    pause(5);
+    pause(1.5);
 end
 
 %% Game finish message
