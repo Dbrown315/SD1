@@ -15,8 +15,8 @@ p = inputParser;
 addParameter(p, "ShowDebug", true, @(x)islogical(x) || isnumeric(x));
 
 % Dark pip settings
-addParameter(p, "DarkPixelThresh", 0.32, @(x)isnumeric(x) && isscalar(x));
-addParameter(p, "MinPipArea", 20, @(x)isnumeric(x) && isscalar(x));
+addParameter(p, "DarkPixelThresh", 0.39, @(x)isnumeric(x) && isscalar(x)); %0.36 %og = 0.32
+addParameter(p, "MinPipArea", 30, @(x)isnumeric(x) && isscalar(x)); %30  %og = 20
 addParameter(p, "MaxPipArea", 500, @(x)isnumeric(x) && isscalar(x));
 
 % Shape filtering
@@ -34,7 +34,7 @@ minSol  = p.Results.MinSolidity;
 
 % Converts to grayscale 
 g = im2double(rgb2gray(diceRGB));
-
+g = adapthisteq(g);
 %smoothing
 gSm = imgaussfilt(g, 1);
 
