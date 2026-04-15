@@ -51,7 +51,6 @@ updateGameStatus(ui, sprintf("Tile %d: %s %s", ...
     gameState.tiles(currentTileIdx).id, yearStr, colorStr), ...
     "Roll: -", scenario_string);
 drawnow;
-pause(5);
 
 %% Main automatic roll loop
 while currentTileIdx < Ntiles
