@@ -3,12 +3,23 @@ function waitForRollButton(ui)
 % Input:   ui struct
 % Output:  none
 
-    ui.RollRequested = false;
+    data = ui.Fig.UserData;
+    data.RollRequested = false;
+    ui.Fig.UserData = data;
 
-    while isvalid(ui.Fig) && ~ui.RollRequested
-        pause(0.05);
+    while isvalid(ui.Fig)
         drawnow;
+        pause(0.05);
+
+        data = ui.Fig.UserData;
+        if isfield(data, 'RollRequested') && data.RollRequested
+            break;
+        end
     end
 
-    ui.RollRequested = false;
+    if isvalid(ui.Fig)
+        data = ui.Fig.UserData;
+        data.RollRequested = false;
+        ui.Fig.UserData = data;
+    end
 end

@@ -51,10 +51,13 @@ function ui = createGameStatusGUI()
         'Position', [715 40 20 20], ...
         'Color', [0.7 0.7 0.7]);
 
-    ui.RollRequested = false;
+    ui.Fig.UserData.RollRequested = false;
+    
     ui.RollButton.ButtonPushedFcn = @(src,event) setRollFlag();
-
+    
     function setRollFlag()
-        ui.RollRequested = true;
+        data = ui.Fig.UserData;
+        data.RollRequested = true;
+        ui.Fig.UserData = data;
     end
 end
