@@ -9,7 +9,6 @@ function [currentAngle, zeroOffsetDeg] = manualZeroCalibration(simCtl, ui)
 
     % Move to the current reset position first.
     setThetaCmdDeg(simCtl, currentAngle, "dc");
-    assignin("base", "theta_cmd_deg", currentAngle);
     pause(1.5);
 
     disp("Manual 0 deg calibration controls:");

@@ -53,69 +53,113 @@ updateGameStatus(ui, sprintf("Tile %d: %s %s", ...
 drawnow;
 pause(5);
 
-%% Main automatic roll loop
-while currentTileIdx < Ntiles
-    updateGameStatus(ui, "Rolling dice...", ui.RollLabel.Text, ui.ScenarioArea.Value);
-    drawnow;
-    pause(1);
+%% Main game loop
+while currentTileIdx < Ntiles && isvalid(ui.Fig)
 
-    % Servo Control
+    updateGameStatus(ui, ...
+        "Press the Rolle Die button to take the next turn.", ...
+        ui.RollLabel.Text, ...
+        ui.ScenarioArea.Value, ...
+        sprintf("Current Tile: %d / %d", currentTileIdx, Ntiles), ...
+        "");
+
+    waitForRollButton(ui);
+
+    if ~isvalid(ui.Fig)
+        break;
+    end
+   
+    %% Roll the die with servo
+    updateGameStatus(ui, ...
+        "Rolling die...", ...
+        "Roll: ...", ...
+        "Rolling in progress.", ...
+        sprintf("Current Tile: %d / %d", currentTileIdx, Ntiles), ...
+        "");
+    
     setThetaCmdDeg(simCtl, 15,"servo");
     pause(2)
     setThetaCmdDeg(simCtl, 0, "servo");
-    pause(.5)
+    pause(0.5)
 
+    %% Read the die
     diceImg = acquireImage(cam);
     outDice = detectDiceTotal_singleImage(diceImg, "ShowDebug", false);
     roll = outDice.total;
 
     if isempty(roll) || ~isscalar(roll) || ~isfinite(roll) || roll < 1
-        updateGameStatus(ui, "Dice read failed. Trying again...", "Roll: invalid", ...
-            "The last dice read failed. The system will try again automatically.");
-        drawnow;
-        pause(2);
+        updateGameStatus(ui, ...
+            "Dice read failed", ...
+            "Roll: invalid", ...
+            "Press Roll Die to try again.", ...
+            sprintf("Current Tile: %d / %d", currentTileIdx, Ntiles), ...
+            "");
         continue;
     end
 
-    nextTileIdx = currentTileIdx + roll;
-    if nextTileIdx >= Ntiles
-        currentTileIdx = Ntiles;
-    else
-        currentTileIdx = nextTileIdx;
-    end
+    %% Move based on die roll
+    rolledTileIdx = clampTileIndex(currentTileIdx + roll, Ntiles);
+    
+    updateGameStatus(ui, ...
+        sprintf("Moving to tile %d", rolledTileIdx), ...
+        sprintf("Roll: %d", roll), ...
+        "Applying die result.", ...
+        sprintf("Current Tile: %d / %d", rolledTileIdx, Ntiles), ...
+        "");
 
-    targetTile = gameState.tiles(currentTileIdx);
-    targetAngle = targetTile.thetaDeg + zeroOffsetDeg;
+    [currentTileIdx, currentAngle] = movePieceToTile(simCtl, gameState, ...
+        currentTileIdx, rolledTileIdx, currentAngle, zeroOffsetDeg);
 
-    updateGameStatus(ui, sprintf("Moving to tile %d (%.1f deg)...", targetTile.id, targetTile.thetaDeg), ...
-        sprintf("Roll: %d", roll), ui.ScenarioArea.Value);
-    drawnow;
+    %% Read Landed Tile
+    landedTile = gameState.tiles(currentTileIdx);
+    yearStr = sectionIdToString(landedTile.sectionId);
+    colorStr = colorIdToString(landedTile.colorId);
 
-    cmdAngle = nearestEquivAngle(targetAngle, currentAngle);
-    setThetaCmdDeg(simCtl, cmdAngle, "dc");
-    currentAngle = cmdAngle;
+    %% Scenario movement
+    [scenarioMove, ruleText] = getScenarioAction(colorStr);
+    
+    %% Scenario flavor text
+    flavorText = get_scenario(yearStr, colorStr);
+
+    scenarioMsg = sprintf("%s\n%s", ruleText, flavorText);
+
+    updateGameStatus(ui, ...
+        sprintf("Landed on tile %d: %s %s", currentTileIdx, yearStr, colorStr), ...
+        sprintf("Roll: %d", roll), ...
+        scenarioMsg, ...
+        sprintf("Current Tile: %d / %d", currentTileIdx, Ntiles), ...
+        "");
+
     pause(2);
 
-    yearStr = sectionIdToString(targetTile.sectionId);
-    colorStr = colorIdToString(targetTile.colorId);
-    scenario_string = get_scenario(yearStr, colorStr);
+    %% Apply scenario movement unless at finish
+    if currentTileIdx < Ntiles
+        scenarioTileIdx = clampTileIndex(currentTileIdx + scenarioMove, Ntiles);
 
-    updateGameStatus(ui, sprintf("Tile %d: %s %s", targetTile.id, yearStr, colorStr), ...
-        sprintf("Roll: %d", roll), scenario_string);
-    drawnow;
+        if scenarioTileIdx ~= currentTileIdx
+            updateGameStatus(ui, ...
+                sprintf("Applying scenario. Moving to tile %d...", scenarioTileIdx), ...
+                sprintf("Roll: %d", roll), ...
+                scenarioMsg, ...
+                sprintf("Current Tile: %d / %d", scenarioTileIdx, Ntiles), ...
+                "");
 
-    if currentTileIdx == Ntiles
-        break;
+            [currentTileIdx, currentAngle] = movePieceToTile(simCtl, gameState, ...
+                currentTileIdx, scenarioTileIdx, currentAngle, zeroOffsetDeg);
+        end
     end
-
-    pause(5);
 end
 
 %% Game finish message
-updateGameStatus(ui, "Congratulations! You've graduated!", ui.RollLabel.Text, ...
-    "The game is finished.");
-drawnow;
-pause(5);
+ui.CompleteLamp.Color = [0 1 0]; % green
+
+updateGameStatus(ui, ...
+    "Game complete.", ...
+    ui.RollLabel.Text, ...
+    "The game is finished.", ...
+    sprintf("Current Tile: %d / %d", currentTileIdx, Ntiles), ...
+    "Congratulations! You've graduated!");
+pause(2);
 
 %% Return to calibrated zero before exit
 try
