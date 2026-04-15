@@ -17,6 +17,7 @@ while true
         writePosition(s, 1); 
         pause(0.8);              
         writePosition(s, 0.5); 
+        pause(0.5);
 
         disp('Done.');
 
