@@ -9,7 +9,7 @@ gameState = buildHardcodedBoard();
 Ntiles = gameState.N;
 
 %% Start motor and force safe shutdown
-model = "SpringMotorModel";
+model = "ModelTest";
 updateGameStatus(ui, "Starting motor controller...", "Roll: -", "Scenario will appear here.");
 drawnow;
 simCtl = startMotorExternal(model);
@@ -17,22 +17,23 @@ simCtl = startMotorExternal(model);
 %% Initialize camera for dice
 updateGameStatus(ui, "Initializing camera...", "Roll: -", "Scenario will appear here.");
 drawnow;
-cam = acquireImage("init");
+%cam = acquireImage("init");
 
 %% Manual zero calibration
 updateGameStatus(ui, ...
-    "Manual 0 deg calibration: use j/k to rotate, s to save current position as 0 deg.", ...
+    "Manual tile 1 calibration: use j/k to rotate, s to save current position as starting tile.", ...
     "Roll: -", ...
     "In the Command Window: j = small CCW step, k = small CW step, J = large CCW step, K = large CW step, s = save current position.");
 drawnow;
 
-[currentAngle, zeroOffsetDeg] = manualZeroCalibration(simCtl, ui);
+[currentAngle, tile1StartCmdDeg] = manualTile1Calibration(simCtl, ui);
 
 %% Start game at tile 1
 currentTileIdx = 1;
 
-tile1Angle = gameState.tiles(currentTileIdx).thetaDeg + zeroOffsetDeg;
-cmdAngle = nearestEquivAngle(tile1Angle, currentAngle);
+tileStepDeg = 15;
+targetAngle = tile1StartCmdDeg + (currentTileIdx - 1) * tileStepDeg;
+cmdAngle = nearestEquivAngle(targetAngle, currentAngle);
 
 updateGameStatus(ui, sprintf("Moving to tile %d (%.1f deg)...", ...
     gameState.tiles(currentTileIdx).id, gameState.tiles(currentTileIdx).thetaDeg), ...
@@ -82,9 +83,10 @@ while currentTileIdx < Ntiles && isvalid(ui.Fig)
     pause(1)
 
     %% Read the die
-    diceImg = acquireImage(cam);
-    outDice = detectDiceTotal_singleImage(diceImg, "ShowDebug", false);
-    roll = outDice.total;
+    %diceImg = acquireImage(cam);
+    %outDice = detectDiceTotal_singleImage(diceImg, "ShowDebug", false);
+    %roll = outDice.total;
+    roll = 3;
 
     if isempty(roll) || ~isscalar(roll) || ~isfinite(roll) || roll < 1
         updateGameStatus(ui, ...
@@ -106,8 +108,8 @@ while currentTileIdx < Ntiles && isvalid(ui.Fig)
         sprintf("Current Tile: %d / %d", rolledTileIdx, Ntiles), ...
         "");
 
-    [currentTileIdx, currentAngle] = movePieceToTile(simCtl, gameState, ...
-        currentTileIdx, rolledTileIdx, currentAngle, zeroOffsetDeg);
+    [currentTileIdx, currentAngle] = movePieceToTile(simCtl, ...
+        rolledTileIdx, currentAngle, tile1StartCmdDeg);
 
     %% Read Landed Tile
     landedTile = gameState.tiles(currentTileIdx);
@@ -143,8 +145,8 @@ while currentTileIdx < Ntiles && isvalid(ui.Fig)
                 sprintf("Current Tile: %d / %d", scenarioTileIdx, Ntiles), ...
                 "");
 
-            [currentTileIdx, currentAngle] = movePieceToTile(simCtl, gameState, ...
-                currentTileIdx, scenarioTileIdx, currentAngle, zeroOffsetDeg);
+            [currentTileIdx, currentAngle] = movePieceToTile(simCtl, ...
+                scenarioTileIdx, currentAngle, tile1StartCmdDeg);
         end
     end
 end
@@ -160,14 +162,14 @@ updateGameStatus(ui, ...
     "Congratulations! You've graduated!");
 pause(5);
 
-%% Return to calibrated zero before exit
+%% Return to calibrated tile 1 start before exit
 try
-    cmdAngle = nearestEquivAngle(zeroOffsetDeg, currentAngle);
+    cmdAngle = nearestEquivAngle(tile1StartCmdDeg, currentAngle);
     setThetaCmdDeg(simCtl, cmdAngle, "dc");
     pause(2);
     stopMotorExternal(simCtl);
 catch 
-    disp('Error while trying to return motor to 0 degree point')
+    disp('Error while trying to return motor to tile 1')
 end
 
 close(ui.Fig);

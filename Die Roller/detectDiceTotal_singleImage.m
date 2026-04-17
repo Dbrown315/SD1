@@ -15,13 +15,13 @@ p = inputParser;
 addParameter(p, "ShowDebug", true, @(x)islogical(x) || isnumeric(x));
 
 % Dark pip settings
-addParameter(p, "DarkPixelThresh", 0.39, @(x)isnumeric(x) && isscalar(x)); %0.36 %og = 0.32
-addParameter(p, "MinPipArea", 30, @(x)isnumeric(x) && isscalar(x)); %30  %og = 20
+addParameter(p, "DarkPixelThresh", 0.34, @(x)isnumeric(x) && isscalar(x)); %0.36 %og = 0.32
+addParameter(p, "MinPipArea", 20, @(x)isnumeric(x) && isscalar(x)); %30  %og = 20
 addParameter(p, "MaxPipArea", 500, @(x)isnumeric(x) && isscalar(x));
 
 % Shape filtering
 addParameter(p, "MaxEccentricity", 0.92, @(x)isnumeric(x) && isscalar(x));
-addParameter(p, "MinSolidity", 0.75, @(x)isnumeric(x) && isscalar(x));
+addParameter(p, "MinSolidity", 0.70, @(x)isnumeric(x) && isscalar(x));
 
 parse(p, varargin{:});
 

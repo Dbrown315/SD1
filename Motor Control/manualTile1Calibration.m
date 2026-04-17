@@ -1,5 +1,5 @@
-function [currentAngle, zeroOffsetDeg] = manualZeroCalibration(simCtl, ui)
-% Purpose: Let the user jog the motor until the pointer is physically at 0 deg.
+function [currentAngle, tile1StartCmdDeg] = manualTile1Calibration(simCtl, ui)
+% Purpose: Let the user jog the motor until the pointer is physically at tile 1.
 % Input:   simCtl handle and GUI handle struct.
 % Output:  current commanded angle and zero offset in degrees.
 
@@ -11,12 +11,12 @@ function [currentAngle, zeroOffsetDeg] = manualZeroCalibration(simCtl, ui)
     setThetaCmdDeg(simCtl, currentAngle, "dc");
     pause(1.5);
 
-    disp("Manual 0 deg calibration controls:");
+    disp("Manual tile 1 calibration controls:");
     disp("  k = small CCW step");
     disp("  j = small CW step");
     disp("  K = large CCW step");
     disp("  J = large CW step");
-    disp("  s = save current position as physical 0 deg");
+    disp("  s = save current position as physical tile 1 position");
 
     while true
         prompt = sprintf('Current command %.1f deg. Enter j/k/J/K/s: ', currentAngle);
@@ -37,11 +37,11 @@ function [currentAngle, zeroOffsetDeg] = manualZeroCalibration(simCtl, ui)
             case 'K'
                 currentAngle = currentAngle + largeStep;
             case {'s', 'S'}
-                zeroOffsetDeg = currentAngle;
+                tile1StartCmdDeg = currentAngle;
                 updateGameStatus(ui, ...
-                    sprintf("Calibrated physical 0 deg at command %.1f deg.", zeroOffsetDeg), ...
+                    sprintf("Calibrated tile 1 at command %.1f deg.", tile1StartCmdDeg), ...
                     "Roll: -", ...
-                    "Calibration saved. The game will now use this as the board's 0 deg reference.");
+                    "Calibration saved. The game will now use this as the tile 1 starting reference.");
                 drawnow;
                 pause(1);
                 return;
@@ -51,9 +51,9 @@ function [currentAngle, zeroOffsetDeg] = manualZeroCalibration(simCtl, ui)
         end
 
         updateGameStatus(ui, ...
-            sprintf("Manual 0 deg calibration: current command %.1f deg", currentAngle), ...
+            sprintf("Manual tile 1 calibration: current command %.1f deg", currentAngle), ...
             "Roll: -", ...
-            "Use j/k for small steps, J/K for large steps, s to save the current position as 0 deg.");
+            "Use j/k for small steps, J/K for large steps, s to save the current position as tile 1 position.");
         drawnow;
 
         setThetaCmdDeg(simCtl, currentAngle, "dc");

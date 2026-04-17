@@ -1,18 +1,19 @@
-function [currentTileIdx, currentAngle] = movePieceToTile(simCtl, gameState, ...
-    currentTileIdx, targetTileIdx, currentAngle, zeroOffsetDeg)
+function [newTileIdx, currentAngle] = movePieceToTile(simCtl, ...
+    targetTileIdx, currentAngle, tile1StartCmdDeg)
+% Purpose: Move the piece using tile 1 as the calibrated starting point
+%          and a fixed 15 deg step per tile.
+% Input:   simCtl handle, target tile index, current commanded angle, and
+%          calibrated tile 1 command angle.
+% Output:  new tile index and updated current command angle.
 
-% Purpose: Move DC motor pointer to a target tile.
-% Input:   simCtl, board state, current tile, target tile,
-%          current commanded angle, zero offset
-% Output:  updated tile index and updated angle
+    tileStepDeg = 15;
 
-    targetTile = gameState.tiles(targetTileIdx);
-    targetAngle = targetTile.thetaDeg + zeroOffsetDeg;
+    targetAngle = tile1StartCmdDeg - (targetTileIdx - 1) * tileStepDeg;
 
     cmdAngle = nearestEquivAngle(targetAngle, currentAngle);
     setThetaCmdDeg(simCtl, cmdAngle, "dc");
     pause(2);
 
-    currentTileIdx = targetTileIdx;
+    newTileIdx = targetTileIdx;
     currentAngle = cmdAngle;
 end
