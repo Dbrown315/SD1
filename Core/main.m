@@ -17,7 +17,7 @@ simCtl = startMotorExternal(model);
 %% Initialize camera for dice
 updateGameStatus(ui, "Initializing camera...", "Roll: -", "Scenario will appear here.");
 drawnow;
-%cam = acquireImage("init");
+cam = acquireImage("init");
 
 %% Manual zero calibration
 updateGameStatus(ui, ...
@@ -83,10 +83,9 @@ while currentTileIdx < Ntiles && isvalid(ui.Fig)
     pause(1)
 
     %% Read the die
-    %diceImg = acquireImage(cam);
-    %outDice = detectDiceTotal_singleImage(diceImg, "ShowDebug", false);
-    %roll = outDice.total;
-    roll = 3;
+    diceImg = acquireImage(cam);
+    outDice = detectDiceTotal_singleImage(diceImg, "ShowDebug", true);
+    roll = outDice.total;
 
     if isempty(roll) || ~isscalar(roll) || ~isfinite(roll) || roll < 1
         updateGameStatus(ui, ...
