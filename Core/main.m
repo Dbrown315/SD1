@@ -9,7 +9,7 @@ gameState = buildHardcodedBoard();
 Ntiles = gameState.N;
 
 %% Start motor and force safe shutdown
-model = "ModelTest";
+model = "SpringMotorModel";
 updateGameStatus(ui, "Starting motor controller...", "Roll: -", "Scenario will appear here.");
 drawnow;
 simCtl = startMotorExternal(model);
