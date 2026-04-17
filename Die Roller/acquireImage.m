@@ -8,7 +8,7 @@ function out = acquireImage(arg)
         % a good picture
         
         cam.Resolution = '640x480';
-        cam.Saturation = 128; % makes the colors pop more and hopefully makes detection a little easier, default 100
+        cam.Saturation = 128; %128 makes the colors pop more and hopefully makes detection a little easier, default 100
         cam.Brightness = 128; % default 128
         cam.Contrast = 100;
         cam.Sharpness = 100;
