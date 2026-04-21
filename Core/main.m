@@ -11,12 +11,10 @@ Ntiles = gameState.N;
 %% Start motor and force safe shutdown
 model = "SpringMotorModel";
 updateGameStatus(ui, "Starting motor controller...", "Roll: -", "Scenario will appear here.");
-drawnow;
 simCtl = startMotorExternal(model);
 
 %% Initialize camera for dice
 updateGameStatus(ui, "Initializing camera...", "Roll: -", "Scenario will appear here.");
-drawnow;
 cam = acquireImage("init");
 
 %% Manual zero calibration
@@ -24,24 +22,16 @@ updateGameStatus(ui, ...
     "Manual tile 1 calibration: use j/k to rotate, s to save current position as starting tile.", ...
     "Roll: -", ...
     "In the Command Window: j = small CCW step, k = small CW step, J = large CCW step, K = large CW step, s = save current position.");
-drawnow;
 
 [currentAngle, tile1StartCmdDeg] = manualTile1Calibration(simCtl, ui);
 
 %% Start game at tile 1
 currentTileIdx = 1;
 
-tileStepDeg = 15;
-targetAngle = tile1StartCmdDeg + (currentTileIdx - 1) * tileStepDeg;
-cmdAngle = nearestEquivAngle(targetAngle, currentAngle);
-
 updateGameStatus(ui, sprintf("Moving to tile %d (%.1f deg)...", ...
     gameState.tiles(currentTileIdx).id, gameState.tiles(currentTileIdx).thetaDeg), ...
     "Roll: -", "Scenario will appear here.");
-drawnow;
-setThetaCmdDeg(simCtl, cmdAngle, "dc");
-currentAngle = cmdAngle;
-pause(1);
+
 
 %% Display scenario for tile 1
 yearStr = sectionIdToString(gameState.tiles(currentTileIdx).sectionId);
@@ -51,14 +41,13 @@ scenario_string = get_scenario(yearStr, colorStr);
 updateGameStatus(ui, sprintf("Tile %d: %s %s", ...
     gameState.tiles(currentTileIdx).id, yearStr, colorStr), ...
     "Roll: -", scenario_string);
-drawnow;
 
 %% Main game loop
 prevDir = 0;
 while currentTileIdx < Ntiles && isvalid(ui.Fig)
 
     updateGameStatus(ui, ...
-        "Press the Rolle Die button to take the next turn.", ...
+        "Press the Roll Die button to take the next turn.", ...
         ui.RollLabel.Text, ...
         ui.ScenarioArea.Value, ...
         sprintf("Current Tile: %d / %d", currentTileIdx, Ntiles), ...
@@ -108,8 +97,8 @@ while currentTileIdx < Ntiles && isvalid(ui.Fig)
         sprintf("Current Tile: %d / %d", rolledTileIdx, Ntiles), ...
         "");
 
-    [currentTileIdx, currentAngle, prevDir] = movePieceToTile(simCtl, ...
-        rolledTileIdx, currentAngle, tile1StartCmdDeg, prevDir);
+    [currentTileIdx, currentAngle, prevDir] = movePieceByTiles(simCtl, ...
+        currentTileIdx, rolledTileIdx, currentAngle, tile1StartCmdDeg, prevDir);
 
     %% Read Landed Tile
     landedTile = gameState.tiles(currentTileIdx);
@@ -131,7 +120,7 @@ while currentTileIdx < Ntiles && isvalid(ui.Fig)
         sprintf("Current Tile: %d / %d", currentTileIdx, Ntiles), ...
         "");
 
-    pause(2);
+    pause(1);
 
     %% Apply scenario movement unless at finish
     if currentTileIdx < Ntiles
@@ -145,8 +134,8 @@ while currentTileIdx < Ntiles && isvalid(ui.Fig)
                 sprintf("Current Tile: %d / %d", scenarioTileIdx, Ntiles), ...
                 "");
 
-            [currentTileIdx, currentAngle, prevDir] = movePieceToTile(simCtl, ...
-                scenarioTileIdx, currentAngle, tile1StartCmdDeg, prevDir);
+            [currentTileIdx, currentAngle, prevDir] = movePieceByTiles(simCtl, ...
+                currentTileIdx, scenarioTileIdx, currentAngle, tile1StartCmdDeg, prevDir);
         end
     end
 end
