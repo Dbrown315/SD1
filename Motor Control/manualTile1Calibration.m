@@ -57,7 +57,6 @@ function [currentAngle, tile1StartCmdDeg] = manualTile1Calibration(simCtl, ui)
         drawnow;
 
         setThetaCmdDeg(simCtl, currentAngle, "dc");
-        assignin("base", "theta_cmd_deg", currentAngle);
         pause(0.8);
     end
 end

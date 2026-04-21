@@ -41,7 +41,7 @@ updateGameStatus(ui, sprintf("Moving to tile %d (%.1f deg)...", ...
 drawnow;
 setThetaCmdDeg(simCtl, cmdAngle, "dc");
 currentAngle = cmdAngle;
-pause(2);
+pause(1);
 
 %% Display scenario for tile 1
 yearStr = sectionIdToString(gameState.tiles(currentTileIdx).sectionId);
@@ -54,6 +54,7 @@ updateGameStatus(ui, sprintf("Tile %d: %s %s", ...
 drawnow;
 
 %% Main game loop
+prevDir = 0;
 while currentTileIdx < Ntiles && isvalid(ui.Fig)
 
     updateGameStatus(ui, ...
@@ -84,7 +85,7 @@ while currentTileIdx < Ntiles && isvalid(ui.Fig)
 
     %% Read the die
     diceImg = acquireImage(cam);
-    outDice = detectDiceTotal_singleImage(diceImg, "ShowDebug", true);
+    outDice = detectDiceTotal_singleImage(diceImg, "ShowDebug", false);
     roll = outDice.total;
 
     if isempty(roll) || ~isscalar(roll) || ~isfinite(roll) || roll < 1
@@ -107,8 +108,8 @@ while currentTileIdx < Ntiles && isvalid(ui.Fig)
         sprintf("Current Tile: %d / %d", rolledTileIdx, Ntiles), ...
         "");
 
-    [currentTileIdx, currentAngle] = movePieceToTile(simCtl, ...
-        rolledTileIdx, currentAngle, tile1StartCmdDeg);
+    [currentTileIdx, currentAngle, prevDir] = movePieceToTile(simCtl, ...
+        rolledTileIdx, currentAngle, tile1StartCmdDeg, prevDir);
 
     %% Read Landed Tile
     landedTile = gameState.tiles(currentTileIdx);
@@ -144,8 +145,8 @@ while currentTileIdx < Ntiles && isvalid(ui.Fig)
                 sprintf("Current Tile: %d / %d", scenarioTileIdx, Ntiles), ...
                 "");
 
-            [currentTileIdx, currentAngle] = movePieceToTile(simCtl, ...
-                scenarioTileIdx, currentAngle, tile1StartCmdDeg);
+            [currentTileIdx, currentAngle, prevDir] = movePieceToTile(simCtl, ...
+                scenarioTileIdx, currentAngle, tile1StartCmdDeg, prevDir);
         end
     end
 end
